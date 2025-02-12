@@ -15,7 +15,7 @@ const Sidebar = () => {
 
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/" },
-    { text: "Customers", icon: <PeopleIcon />, path: "/customers" },
+    { text: "Passengers", icon: <PeopleIcon />, path: "/passengers" },
     { text: "Drivers", icon: <DirectionsCarIcon />, path: "/drivers" },
     { text: "Ride List", icon: <ListAltIcon />, path: "/rides" },
     { text: "Earnings Reports", icon: <AttachMoneyIcon />, path: "/earnings" },
