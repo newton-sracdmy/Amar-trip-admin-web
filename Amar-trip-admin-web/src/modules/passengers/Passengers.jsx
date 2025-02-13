@@ -21,11 +21,11 @@ import {
   InputLabel,
   Pagination,
   CircularProgress,
+  styled
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { styled } from '@mui/material/styles';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUsersData } from './action';
+import { getUsersData } from '../drivers/action';
 
 const theme = createTheme({
   palette: {
@@ -35,24 +35,6 @@ const theme = createTheme({
     status: {
       active: '#4caf50',
       inactive: '#f44336',
-    },
-  },
-  components: {
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          boxShadow: '0px 2px 4px -1px rgba(0,0,0,0.1)',
-        },
-      },
-    },
-    MuiTableHead: {
-      styleOverrides: {
-        root: {
-          '& .MuiTableCell-root': {
-            fontWeight: 'bold',
-          },
-        },
-      },
     },
   },
 });
@@ -86,25 +68,27 @@ const StatusChip = ({ status }) => {
   );
 };
 
-function Drivers() {
+function Passengers() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+  const [error, setError] = useState(null);
 
   const dispatch = useDispatch();
-  const drivers = useSelector((state) => state.usersReducer);
-  
+  const passengers = useSelector((state) => state.usersReducer);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setError(null);
       try {
-        await dispatch(getUsersData("driver"));
+        await dispatch(getUsersData("passenger"));
       } catch (error) {
-        console.error('Error fetching rides:', error);
+        setError('Failed to fetch passenger data. Please try again later.');
+        console.error('Error fetching passengers:', error);
       } finally {
         setLoading(false);
       }
@@ -112,26 +96,26 @@ function Drivers() {
     fetchData();
   }, [dispatch]);
 
-
-  const filteredDrivers = Array.isArray(drivers?.users) ? 
-  drivers.users.filter(driver => 
-    (statusFilter === 'all' || driver.status === statusFilter) &&
-    ((driver.name?.toLowerCase()?.includes(searchQuery.toLowerCase())) || 
-     (driver.phone?.includes(searchQuery)))
-  ) 
-  : [];
-
+  const filteredPassengers = React.useMemo(() => {
+    if (!Array.isArray(passengers?.users)) return [];
+    
+    return passengers.users.filter(passenger => 
+      (statusFilter === 'all' || passenger.status === statusFilter) &&
+      (passenger.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+       passenger.phone?.includes(searchQuery))
+    );
+  }, [passengers?.users, statusFilter, searchQuery]);
 
   useEffect(() => {
-    if (filteredDrivers.length > 0) {
-      setTotalPages(Math.ceil(filteredDrivers.length / rowsPerPage));
+    if (filteredPassengers.length > 0) {
+      setTotalPages(Math.ceil(filteredPassengers.length / rowsPerPage));
       setPage(1);
     }
-  }, [filteredDrivers.length, rowsPerPage]);
+  }, [filteredPassengers.length, rowsPerPage]);
 
-  const getCurrentPageDrivers = () => {
+  const getCurrentPagePassengers = () => {
     const startIndex = (page - 1) * rowsPerPage;
-    return filteredDrivers.slice(startIndex, startIndex + rowsPerPage);
+    return filteredPassengers.slice(startIndex, startIndex + rowsPerPage);
   };
 
   const handlePageChange = (event, newPage) => {
@@ -143,15 +127,32 @@ function Drivers() {
     setPage(1);
   };
 
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+    setPage(1);
+  };
+
+  const handleStatusFilterChange = (event) => {
+    setStatusFilter(event.target.value);
+    setPage(1);
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <StyledPaper>
+          {error && (
+            <Typography color="error" sx={{ mb: 2 }}>
+              {error}
+            </Typography>
+          )}
+          
           <Box sx={{ mb: 4 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
               <Typography variant="h5" component="h1" fontWeight="bold">
-                Driver Management
+                Passengers Management
               </Typography>
+              
               <Box display="flex" gap={2}>
                 <FormControl sx={{ minWidth: 120 }} size="small">
                   <InputLabel id="status-filter-label">Status</InputLabel>
@@ -160,7 +161,7 @@ function Drivers() {
                     id="status-filter"
                     value={statusFilter}
                     label="Status"
-                    onChange={(e) => setStatusFilter(e.target.value)}
+                    onChange={handleStatusFilterChange}
                   >
                     <MenuItem value="all">All Status</MenuItem>
                     <MenuItem value="active">Active</MenuItem>
@@ -172,8 +173,8 @@ function Drivers() {
                   size="small"
                   placeholder="Search by name or phone..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  sx={{ width: 200 }}
+                  onChange={handleSearchChange}
+                  sx={{ width: 250 }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -209,29 +210,31 @@ function Drivers() {
                         </Box>
                       </TableCell>
                     </TableRow>
-                  ) : filteredDrivers.length === 0 ? (
+                  ) : filteredPassengers.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={9} align="center">
-                        No drivers found
+                        <Typography variant="body1" sx={{ py: 2 }}>
+                          No passengers found
+                        </Typography>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    getCurrentPageDrivers().map((driver) => (
+                    getCurrentPagePassengers().map((passenger) => (
                       <TableRow 
-                        key={driver.id}
+                        key={passenger.id}
                         sx={{ '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
                       >
-                        <StyledTableCell>{driver.name}</StyledTableCell>
-                        <StyledTableCell>{driver.phone}</StyledTableCell>
-                        <StyledTableCell>{driver.email}</StyledTableCell>
+                        <StyledTableCell>{passenger.name}</StyledTableCell>
+                        <StyledTableCell>{passenger.phone}</StyledTableCell>
+                        <StyledTableCell>{passenger.email}</StyledTableCell>
                         <StyledTableCell>
-                          <StatusChip status={driver.status} />
+                          <StatusChip status={passenger.status} />
                         </StyledTableCell>
-                        <StyledTableCell>{driver.rating}</StyledTableCell>
-                        <StyledTableCell>{driver.blood_group}</StyledTableCell>
-                        <StyledTableCell>{driver.emergency_contact}</StyledTableCell>
-                        <StyledTableCell>{driver.experience}</StyledTableCell>
-                        <StyledTableCell>{driver.gender}</StyledTableCell>
+                        <StyledTableCell>{passenger.rating}</StyledTableCell>
+                        <StyledTableCell>{passenger.blood_group}</StyledTableCell>
+                        <StyledTableCell>{passenger.emergency_contact}</StyledTableCell>
+                        <StyledTableCell>{passenger.experience}</StyledTableCell>
+                        <StyledTableCell>{passenger.gender}</StyledTableCell>
                       </TableRow>
                     ))
                   )}
@@ -239,7 +242,7 @@ function Drivers() {
               </Table>
             </TableContainer>
 
-            {filteredDrivers.length > 0 && (
+            {filteredPassengers.length > 0 && (
               <Box 
                 display="flex" 
                 justifyContent="space-between" 
@@ -265,7 +268,7 @@ function Drivers() {
                     </FormControl>
                   </Box>
                   <Typography variant="body2" color="text.secondary">
-                    Showing {getCurrentPageDrivers().length} of {filteredDrivers.length} drivers
+                    Showing {getCurrentPagePassengers().length} of {filteredPassengers.length} passengers
                   </Typography>
                 </Box>
                 <Pagination
@@ -286,4 +289,4 @@ function Drivers() {
   );
 }
 
-export default Drivers;
+export default Passengers;
