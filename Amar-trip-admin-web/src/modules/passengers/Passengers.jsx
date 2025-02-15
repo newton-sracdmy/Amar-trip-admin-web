@@ -21,9 +21,9 @@ import {
   InputLabel,
   Pagination,
   CircularProgress,
-  styled
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import { styled } from '@mui/material/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUsersData } from '../drivers/action';
 
@@ -35,6 +35,24 @@ const theme = createTheme({
     status: {
       active: '#4caf50',
       inactive: '#f44336',
+    },
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0px 2px 4px -1px rgba(0,0,0,0.1)',
+        },
+      },
+    },
+    MuiTableHead: {
+      styleOverrides: {
+        root: {
+          '& .MuiTableCell-root': {
+            fontWeight: 'bold',
+          },
+        },
+      },
     },
   },
 });
@@ -71,52 +89,61 @@ const StatusChip = ({ status }) => {
 function Passengers() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [isOnline, setIsOnline] = useState('all');
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
-  const [error, setError] = useState(null);
+  const [totalItems, setTotalItems] = useState(0);
 
   const dispatch = useDispatch();
-  const passengers = useSelector((state) => state.usersReducer);
+  const passengersData = useSelector((state) => state.usersReducer);
+  const passengers=passengersData?.users?.users;
+
+
+  const useDebounce = (value, delay) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+    
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, delay);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value, delay]);
+     
+    return debouncedValue;
+  };
+
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      setError(null);
       try {
-        await dispatch(getUsersData("passenger"));
+        await dispatch(getUsersData({
+          page,
+          type: "passenger",
+          limit: rowsPerPage,
+          isOnline: isOnline === 'all' ? '' : isOnline,
+          search: debouncedSearchQuery
+        }));
       } catch (error) {
-        setError('Failed to fetch passenger data. Please try again later.');
-        console.error('Error fetching passengers:', error);
+        console.error('Error fetching passengers data:', error);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, [dispatch]);
-
-  const filteredPassengers = React.useMemo(() => {
-    if (!Array.isArray(passengers?.users)) return [];
-    
-    return passengers.users.filter(passenger => 
-      (statusFilter === 'all' || passenger.status === statusFilter) &&
-      (passenger.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-       passenger.phone?.includes(searchQuery))
-    );
-  }, [passengers?.users, statusFilter, searchQuery]);
+  }, [dispatch, page, rowsPerPage, isOnline, debouncedSearchQuery]); 
 
   useEffect(() => {
-    if (filteredPassengers.length > 0) {
-      setTotalPages(Math.ceil(filteredPassengers.length / rowsPerPage));
-      setPage(1);
+    if (passengersData?.users?.pagination) {
+      setTotalItems(passengersData?.users?.pagination.totalRides);
+      setTotalPages(passengersData?.users?.pagination.totalPages);
     }
-  }, [filteredPassengers.length, rowsPerPage]);
-
-  const getCurrentPagePassengers = () => {
-    const startIndex = (page - 1) * rowsPerPage;
-    return filteredPassengers.slice(startIndex, startIndex + rowsPerPage);
-  };
+  }, [passengers]);
 
   const handlePageChange = (event, newPage) => {
     setPage(newPage);
@@ -127,13 +154,13 @@ function Passengers() {
     setPage(1);
   };
 
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
-    setPage(1);
+  const handleStatusChange = (event) => {
+    setIsOnline(event.target.value);
+    setPage(1); 
   };
 
-  const handleStatusFilterChange = (event) => {
-    setStatusFilter(event.target.value);
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
     setPage(1);
   };
 
@@ -141,31 +168,24 @@ function Passengers() {
     <ThemeProvider theme={theme}>
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <StyledPaper>
-          {error && (
-            <Typography color="error" sx={{ mb: 2 }}>
-              {error}
-            </Typography>
-          )}
-          
           <Box sx={{ mb: 4 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
               <Typography variant="h5" component="h1" fontWeight="bold">
-                Passengers Management
+              Passenger Management
               </Typography>
-              
               <Box display="flex" gap={2}>
                 <FormControl sx={{ minWidth: 120 }} size="small">
                   <InputLabel id="status-filter-label">Status</InputLabel>
                   <Select
                     labelId="status-filter-label"
                     id="status-filter"
-                    value={statusFilter}
+                    value={isOnline}
                     label="Status"
-                    onChange={handleStatusFilterChange}
+                    onChange={handleStatusChange}
                   >
                     <MenuItem value="all">All Status</MenuItem>
-                    <MenuItem value="active">Active</MenuItem>
-                    <MenuItem value="inactive">Inactive</MenuItem>
+                    <MenuItem value="true">Online</MenuItem>
+                    <MenuItem value="false">Offline</MenuItem>
                   </Select>
                 </FormControl>
                 
@@ -174,7 +194,7 @@ function Passengers() {
                   placeholder="Search by name or phone..."
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  sx={{ width: 250 }}
+                  sx={{ width: 200 }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -210,16 +230,14 @@ function Passengers() {
                         </Box>
                       </TableCell>
                     </TableRow>
-                  ) : filteredPassengers.length === 0 ? (
+                  ) : !passengers?.length ? (
                     <TableRow>
                       <TableCell colSpan={9} align="center">
-                        <Typography variant="body1" sx={{ py: 2 }}>
-                          No passengers found
-                        </Typography>
+                        No passengers found
                       </TableCell>
                     </TableRow>
                   ) : (
-                    getCurrentPagePassengers().map((passenger) => (
+                    passengers.map((passenger,key) => (
                       <TableRow 
                         key={passenger.id}
                         sx={{ '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
@@ -242,7 +260,7 @@ function Passengers() {
               </Table>
             </TableContainer>
 
-            {filteredPassengers.length > 0 && (
+            {passengers?.length > 0 && (
               <Box 
                 display="flex" 
                 justifyContent="space-between" 
@@ -268,7 +286,7 @@ function Passengers() {
                     </FormControl>
                   </Box>
                   <Typography variant="body2" color="text.secondary">
-                    Showing {getCurrentPagePassengers().length} of {filteredPassengers.length} passengers
+                    Showing {passengers?.length} of {totalItems} passengers
                   </Typography>
                 </Box>
                 <Pagination

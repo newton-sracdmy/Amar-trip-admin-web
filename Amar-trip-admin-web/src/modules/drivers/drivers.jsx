@@ -89,50 +89,61 @@ const StatusChip = ({ status }) => {
 function Drivers() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [isOnline, setIsOnline] = useState('all');
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
 
   const dispatch = useDispatch();
-  const drivers = useSelector((state) => state.usersReducer);
-  
+  const driversData = useSelector((state) => state.usersReducer);
+  const drivers=driversData?.users?.users;
+
+
+  const useDebounce = (value, delay) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+    
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, delay);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value, delay]);
+     
+    return debouncedValue;
+  };
+
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        await dispatch(getUsersData("driver"));
+        await dispatch(getUsersData({
+          page,
+          type: "driver",
+          limit: rowsPerPage,
+          isOnline: isOnline === 'all' ? '' : isOnline,
+          search: debouncedSearchQuery
+        }));
       } catch (error) {
-        console.error('Error fetching rides:', error);
+        console.error('Error fetching drivers:', error);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, [dispatch]);
-
-
-  const filteredDrivers = Array.isArray(drivers?.users) ? 
-  drivers.users.filter(driver => 
-    (statusFilter === 'all' || driver.status === statusFilter) &&
-    ((driver.name?.toLowerCase()?.includes(searchQuery.toLowerCase())) || 
-     (driver.phone?.includes(searchQuery)))
-  ) 
-  : [];
-
+  }, [dispatch, page, rowsPerPage, isOnline, debouncedSearchQuery]); 
 
   useEffect(() => {
-    if (filteredDrivers.length > 0) {
-      setTotalPages(Math.ceil(filteredDrivers.length / rowsPerPage));
-      setPage(1);
+    if (driversData?.users?.pagination) {
+      setTotalItems(driversData?.users?.pagination.totalRides);
+      setTotalPages(driversData?.users?.pagination.totalPages);
     }
-  }, [filteredDrivers.length, rowsPerPage]);
-
-  const getCurrentPageDrivers = () => {
-    const startIndex = (page - 1) * rowsPerPage;
-    return filteredDrivers.slice(startIndex, startIndex + rowsPerPage);
-  };
+  }, [drivers]);
 
   const handlePageChange = (event, newPage) => {
     setPage(newPage);
@@ -140,6 +151,16 @@ function Drivers() {
 
   const handleRowsPerPageChange = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(1);
+  };
+
+  const handleStatusChange = (event) => {
+    setIsOnline(event.target.value);
+    setPage(1); 
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
     setPage(1);
   };
 
@@ -158,13 +179,13 @@ function Drivers() {
                   <Select
                     labelId="status-filter-label"
                     id="status-filter"
-                    value={statusFilter}
+                    value={isOnline}
                     label="Status"
-                    onChange={(e) => setStatusFilter(e.target.value)}
+                    onChange={handleStatusChange}
                   >
                     <MenuItem value="all">All Status</MenuItem>
-                    <MenuItem value="active">Active</MenuItem>
-                    <MenuItem value="inactive">Inactive</MenuItem>
+                    <MenuItem value="true">Online</MenuItem>
+                    <MenuItem value="false">Offline</MenuItem>
                   </Select>
                 </FormControl>
                 
@@ -172,7 +193,7 @@ function Drivers() {
                   size="small"
                   placeholder="Search by name or phone..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={handleSearchChange}
                   sx={{ width: 200 }}
                   InputProps={{
                     startAdornment: (
@@ -209,14 +230,14 @@ function Drivers() {
                         </Box>
                       </TableCell>
                     </TableRow>
-                  ) : filteredDrivers.length === 0 ? (
+                  ) : !drivers?.length ? (
                     <TableRow>
                       <TableCell colSpan={9} align="center">
                         No drivers found
                       </TableCell>
                     </TableRow>
                   ) : (
-                    getCurrentPageDrivers().map((driver) => (
+                    drivers.map((driver,key) => (
                       <TableRow 
                         key={driver.id}
                         sx={{ '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
@@ -239,7 +260,7 @@ function Drivers() {
               </Table>
             </TableContainer>
 
-            {filteredDrivers.length > 0 && (
+            {drivers?.length > 0 && (
               <Box 
                 display="flex" 
                 justifyContent="space-between" 
@@ -265,7 +286,7 @@ function Drivers() {
                     </FormControl>
                   </Box>
                   <Typography variant="body2" color="text.secondary">
-                    Showing {getCurrentPageDrivers().length} of {filteredDrivers.length} drivers
+                    Showing {drivers?.length} of {totalItems} drivers
                   </Typography>
                 </Box>
                 <Pagination

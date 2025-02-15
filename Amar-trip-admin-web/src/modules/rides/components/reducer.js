@@ -1,12 +1,15 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { getRidesData } from './action';
+import { getRidesData, getRideDataById } from './action';
 
 const initialState = {
   rides: [],
-  status: 'idle',
-  error: '',
+  rideDataById: [],
+  ridesStatus: 'idle', 
+  rideDataByIdStatus: 'idle',
+  ridesError: '',
+  rideDataByIdError: '',
   isLoading: false,
-  isError: false
+  isError: false,
 };
 
 export const ridesSlice = createSlice({
@@ -16,20 +19,36 @@ export const ridesSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(getRidesData.pending, (state) => {
-        state.status = 'pending';
+        state.ridesStatus = 'pending';
         state.isLoading = true;
         state.isError = false;
       })
       .addCase(getRidesData.fulfilled, (state, action) => {
-        state.status = 'success';
+        state.ridesStatus = 'success';
         state.isLoading = false;
         state.rides = action.payload;
       })
       .addCase(getRidesData.rejected, (state, action) => {
-        state.status = 'error';
+        state.ridesStatus = 'error';
         state.isLoading = false;
         state.isError = true;
-        state.error = action.error.message;
+        state.ridesError = action.error.message;
+      })
+      .addCase(getRideDataById.pending, (state) => {
+        state.rideDataByIdStatus = 'pending';
+        state.isLoading = true;
+        state.isError = false;
+      })
+      .addCase(getRideDataById.fulfilled, (state, action) => {
+        state.rideDataByIdStatus = 'success';
+        state.isLoading = false;
+        state.rideDataById = action.payload;
+      })
+      .addCase(getRideDataById.rejected, (state, action) => {
+        state.rideDataByIdStatus = 'error';
+        state.isLoading = false;
+        state.isError = true;
+        state.rideDataByIdError = action.error.message;
       });
   }
 });

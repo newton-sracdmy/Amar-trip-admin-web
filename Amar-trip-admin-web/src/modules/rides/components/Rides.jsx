@@ -20,12 +20,16 @@ import {
   createTheme,
   Pagination,
   CircularProgress,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 
 import SearchIcon from '@mui/icons-material/Search';
+import InfoIcon from '@mui/icons-material/Info';
 import { styled } from '@mui/material/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { getRidesData } from './action';
+import { useNavigate } from 'react-router-dom';
 
 const theme = createTheme({
   palette: {
@@ -113,17 +117,50 @@ const Rides = () => {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const ridesData = useSelector((state) => state.ridesReducer);
   
-  const ridesArray = ridesData?.rides?.rides || [];
+  const rides = ridesData?.rides?.rides || [];
+
+
+  const handleDetailsClick = (rideId) => {
+    console.log('Details clicked for rides:', rideId);
+    navigate(`/rides/${rideId}`);
+  };
+  
+  
+  const useDebounce = (value, delay) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, delay);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value, delay]);
+     
+    return debouncedValue;
+  };
+
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        await dispatch(getRidesData());
+        await dispatch(getRidesData({
+          page,
+          limit: rowsPerPage,
+          status: status === 'all' ? '' : status,
+          search: debouncedSearchQuery
+        }));
       } catch (error) {
         console.error('Error fetching rides:', error);
       } finally {
@@ -131,39 +168,34 @@ const Rides = () => {
       }
     };
     fetchData();
-  }, [dispatch]);
-
-  const filteredRides = ridesArray.length > 0 ? ridesArray.filter(ride =>
-    (status === 'all' || ride?.status?.toLowerCase() === status.toLowerCase()) &&
-    (ride?.user?.name?.toLowerCase().includes(searchQuery.toLowerCase() || '') ||
-     ride?.driver?.name?.toLowerCase().includes(searchQuery.toLowerCase() || ''))
-  ) : [];
-
+  }, [dispatch, page, rowsPerPage, status, debouncedSearchQuery]);
+  
   useEffect(() => {
-    if (ridesArray.length > 0) {
-      setTotalPages(Math.ceil(filteredRides.length / rowsPerPage));
-      setPage(1);
+    if (ridesData?.rides?.pagination) {
+      setTotalItems(ridesData.rides.pagination.totalRides);
+      setTotalPages(ridesData.rides.pagination.totalPages);
     }
-  }, [filteredRides.length, rowsPerPage, searchQuery, status, ridesArray.length]);
-
-  const getCurrentPageRides = () => {
-    if (!ridesArray.length) return [];
-    const startIndex = (page - 1) * rowsPerPage;
-    return filteredRides.slice(startIndex, startIndex + rowsPerPage);
-  };
+  }, [ridesData]);
 
   const handlePageChange = (event, newPage) => {
     setPage(newPage);
   };
 
   const handleRowsPerPageChange = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    setRowsPerPage(newRowsPerPage);
     setPage(1);
   };
 
-  if (!ridesArray.length && !loading) {
-    return null;
-  }
+  const handleStatusChange = (event) => {
+    setStatus(event.target.value);
+    setPage(1);
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+    setPage(1);
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -175,97 +207,104 @@ const Rides = () => {
                 <Typography variant="h5" component="h1" fontWeight="bold">
                   Rides Management
                 </Typography>
-                {ridesArray.length > 0 && (
-                  <Box display="flex" gap={2}>
-                    <Select
-                      size="small"
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                      displayEmpty
-                      sx={{ minWidth: 120 }}
-                    >
-                      <MenuItem value="all">All Status</MenuItem>
-                      <MenuItem value="completed">COMPLETED</MenuItem>
-                      <MenuItem value="accepted">ACCEPTED</MenuItem>
-                      <MenuItem value="in_progress">IN_PROGRESS</MenuItem>
-                      <MenuItem value="cancelled">CANCELLED</MenuItem>
-                      <MenuItem value="open">OPEN</MenuItem>
-                      <MenuItem value="closed">CLOSED</MenuItem>
-                      <MenuItem value="passenger_payment_confirmed">PASSENGER_PAYMENT_CONFIRMED</MenuItem>
-                      <MenuItem value="driver_payment_confirmed">DRIVER_PAYMENT_CONFIRMED</MenuItem>
-
-                    </Select>
-                    
-                    <TextField
-                      size="small"
-                      placeholder="Search..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      sx={{ width: 200 }}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SearchIcon color="action" />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Box>
-                )}
+                <Box display="flex" gap={2}>
+                  <Select
+                    size="small"
+                    value={status}
+                    onChange={handleStatusChange}
+                    displayEmpty
+                    sx={{ minWidth: 120 }}
+                  >
+                    <MenuItem value="all">All Status</MenuItem>
+                    <MenuItem value="completed">COMPLETED</MenuItem>
+                    <MenuItem value="accepted">ACCEPTED</MenuItem>
+                    <MenuItem value="in_progress">IN_PROGRESS</MenuItem>
+                    <MenuItem value="cancelled">CANCELLED</MenuItem>
+                    <MenuItem value="open">OPEN</MenuItem>
+                    <MenuItem value="closed">CLOSED</MenuItem>
+                    <MenuItem value="passenger_payment_confirmed">PASSENGER_PAYMENT_CONFIRMED</MenuItem>
+                    <MenuItem value="driver_payment_confirmed">DRIVER_PAYMENT_CONFIRMED</MenuItem>
+                  </Select>
+                  
+                  <TextField
+                    size="small"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    sx={{ width: 200 }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Box>
               </Box>
             </Grid>
 
-            {ridesArray.length > 0 && (
-              <Grid item xs={12}>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
+            <Grid item xs={12}>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <StyledTableHeaderCell>Customer Name</StyledTableHeaderCell>
+                      <StyledTableHeaderCell>Driver Name</StyledTableHeaderCell>
+                      <StyledTableHeaderCell>Car Type</StyledTableHeaderCell>
+                      <StyledTableHeaderCell>Total Fare(৳)</StyledTableHeaderCell>
+                      <StyledTableHeaderCell>Status</StyledTableHeaderCell>
+                      <StyledTableHeaderCell>Details</StyledTableHeaderCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {loading ? (
                       <TableRow>
-                        <StyledTableHeaderCell>Customer Name</StyledTableHeaderCell>
-                        <StyledTableHeaderCell>Driver Name</StyledTableHeaderCell>
-                        <StyledTableHeaderCell>Car Type</StyledTableHeaderCell>
-                        <StyledTableHeaderCell>Total Fare(৳)</StyledTableHeaderCell>
-                        <StyledTableHeaderCell>Status</StyledTableHeaderCell>
+                        <TableCell colSpan={6} align="center">
+                          <Box display="flex" justifyContent="center" p={3}>
+                            <CircularProgress />
+                          </Box>
+                        </TableCell>
                       </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {loading ? (
-                        <TableRow>
-                          <TableCell colSpan={5} align="center">
-                            <Box display="flex" justifyContent="center" p={3}>
-                              <CircularProgress />
-                            </Box>
-                          </TableCell>
+                    ) : rides.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} align="center">
+                          No rides found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      rides.map((ride) => (
+                        <TableRow 
+                          key={ride._id}
+                          sx={{ '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
+                        >
+                          <StyledTableCell>{ride.user?.name || 'N/A'}</StyledTableCell>
+                          <StyledTableCell>{ride.driver?.name || 'N/A'}</StyledTableCell>
+                          <StyledTableCell>{ride.carType || 'N/A'}</StyledTableCell>
+                          <StyledTableCell>{ride.fare?.totalFare || 0}</StyledTableCell>
+                          <StyledTableCell>
+                            <StatusChip status={ride.status || 'unknown'} />
+                          </StyledTableCell>
+                          <StyledTableCell>
+                            <Tooltip title="View Details">
+                              <IconButton
+                                color="primary"
+                                onClick={() => handleDetailsClick(ride._id)}
+                                size="small"
+                              >
+                                <InfoIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </StyledTableCell>
                         </TableRow>
-                      ) : filteredRides.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={5} align="center">
-                            No rides found
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        getCurrentPageRides().map((ride) => (
-                          <TableRow 
-                            key={ride._id}
-                            sx={{ '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
-                          >
-                            <StyledTableCell>{ride.user?.name || 'N/A'}</StyledTableCell>
-                            <StyledTableCell>{ride.driver?.name || 'N/A'}</StyledTableCell>
-                            <StyledTableCell>{ride.carType || 'N/A'}</StyledTableCell>
-                            <StyledTableCell>{ride.fare?.totalFare || 0}</StyledTableCell>
-                            <StyledTableCell>
-                              <StatusChip status={ride.status || 'unknown'} />
-                            </StyledTableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Grid>
-            )}
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Grid>
 
-            {ridesArray.length > 0 && filteredRides.length > 0 && (
+            {rides.length > 0 && (
               <Grid item xs={12}>
                 <Box 
                   display="flex" 
@@ -290,7 +329,7 @@ const Rides = () => {
                       </Select>
                     </Box>
                     <Typography variant="body2" color="text.secondary">
-                      Showing {getCurrentPageRides().length} of {filteredRides.length} rides
+                      Showing {rides.length} of {totalItems} rides
                     </Typography>
                   </Box>
                   <Pagination
