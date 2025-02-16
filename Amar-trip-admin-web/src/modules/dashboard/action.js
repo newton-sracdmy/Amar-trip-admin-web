@@ -4,12 +4,11 @@ import amrTrip from "../../services/amrTrip";
 
 export const getRidesSummary = createAsyncThunk(
   'rides/fetchRidesSummary',
-  async () => {  
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YTVkZDAyZTg0MjQyNGYwYjlkZDc4ZiIsInR5cGUiOiJhZG1pbiIsImlhdCI6MTczOTUxMzU5NCwiZXhwIjoxNzM5NTM1MTk0fQ.bL-GPnL45_x21OEEon73VpJRYmFwRVofKJFSfzIDKyY";
+  async (_, { getState }) => {  
     const config = {
       headers: {
-        Authorization: `Bearer ${token}`,
-      },
+        Authorization: `Bearer ${getState().authReducer.token}`
+      }
     };
     
    const response = await amrTrip.get(`/RidesSummary`, config);

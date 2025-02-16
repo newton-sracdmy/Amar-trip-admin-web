@@ -5,13 +5,11 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import ListAltIcon from "@mui/icons-material/ListAlt";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-import SettingsIcon from "@mui/icons-material/Settings";
 
 const drawerWidth = 200;
 
 const Sidebar = () => {
-  const location = useLocation(); 
+  const location = useLocation();
 
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
@@ -19,6 +17,13 @@ const Sidebar = () => {
     { text: "Drivers", icon: <DirectionsCarIcon />, path: "/drivers" },
     { text: "Ride List", icon: <ListAltIcon />, path: "/rides" },
   ];
+
+  const isActive = (path) => {
+    return (
+      location.pathname.startsWith(path) || 
+      (location.pathname.startsWith("/users/") && location.state?.parent === path.replace("/", ""))
+    );
+  };
 
   return (
     <Drawer
@@ -38,14 +43,14 @@ const Sidebar = () => {
             component={Link}
             to={item.path}
             sx={{
-              backgroundColor: location.pathname === item.path ? "#1976d2" : "transparent",
-              color: location.pathname === item.path ? "white" : "inherit",
+              backgroundColor: isActive(item.path) ? "#1976d2" : "transparent",
+              color: isActive(item.path) ? "white" : "inherit",
               "&:hover": {
-                backgroundColor: "#1565c0", 
+                backgroundColor: "#1565c0",
               },
             }}
           >
-            <ListItemIcon sx={{ color: location.pathname === item.path ? "white" : "inherit" }}>
+            <ListItemIcon sx={{ color: isActive(item.path) ? "white" : "inherit" }}>
               {item.icon}
             </ListItemIcon>
             <ListItemText primary={item.text} />

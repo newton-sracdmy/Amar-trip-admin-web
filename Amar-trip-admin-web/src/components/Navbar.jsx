@@ -4,10 +4,19 @@ import MenuIcon from "@mui/icons-material/Menu";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar"; 
 import LoginIcon from "@mui/icons-material/Login"; 
 import LogoutIcon from "@mui/icons-material/Logout"; 
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { logoutUser } from "../modules/login/reducer";
 
 const Navbar = ({ toggleDrawer }) => {
-  const isLoggedIn = false; 
+  
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
+  const handleLogout = () => {
+    dispatch(logoutUser());
+    navigate("/");
+  };
   return (
     <AppBar position="fixed" sx={{ zIndex: 1301 }}> 
       <Toolbar>
@@ -24,11 +33,8 @@ const Navbar = ({ toggleDrawer }) => {
           </Typography>
         </Box>
 
-        {isLoggedIn ? (
-          <Button color="inherit" startIcon={<LogoutIcon />}>Logout</Button>
-        ) : (
-          <Button color="inherit" sx={{ mr: 5 }} startIcon={<LoginIcon />}>Login</Button>
-        )}
+        
+          <Button color="inherit" onClick={handleLogout} sx={{ mr: 5 }}  startIcon={<LogoutIcon />}>Logout</Button>
       </Toolbar>
     </AppBar>
   );

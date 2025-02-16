@@ -21,11 +21,15 @@ import {
   InputLabel,
   Pagination,
   CircularProgress,
+  Tooltip,
+  IconButton,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import InfoIcon from '@mui/icons-material/Info';
 import { styled } from '@mui/material/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUsersData } from '../drivers/action';
+import { useNavigate } from 'react-router-dom';
 
 const theme = createTheme({
   palette: {
@@ -96,6 +100,8 @@ function Passengers() {
   const [totalItems, setTotalItems] = useState(0);
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const passengersData = useSelector((state) => state.usersReducer);
   const passengers=passengersData?.users?.users;
 
@@ -164,6 +170,11 @@ function Passengers() {
     setPage(1);
   };
 
+  
+  const handleDetailsClick = (userId) => {
+    navigate(`/users/${userId}`, { state: { parent: "passengers" } });
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -215,10 +226,10 @@ function Passengers() {
                     <StyledTableHeaderCell>Email</StyledTableHeaderCell>
                     <StyledTableHeaderCell>Status</StyledTableHeaderCell>
                     <StyledTableHeaderCell>Rating</StyledTableHeaderCell>
-                    <StyledTableHeaderCell>Blood Group</StyledTableHeaderCell>
                     <StyledTableHeaderCell>Emergency Contact</StyledTableHeaderCell>
                     <StyledTableHeaderCell>Experience</StyledTableHeaderCell>
                     <StyledTableHeaderCell>Gender</StyledTableHeaderCell>
+                    <StyledTableHeaderCell align="center">Details</StyledTableHeaderCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -249,10 +260,20 @@ function Passengers() {
                           <StatusChip status={passenger.status} />
                         </StyledTableCell>
                         <StyledTableCell>{passenger.rating}</StyledTableCell>
-                        <StyledTableCell>{passenger.blood_group}</StyledTableCell>
                         <StyledTableCell>{passenger.emergency_contact}</StyledTableCell>
                         <StyledTableCell>{passenger.experience}</StyledTableCell>
                         <StyledTableCell>{passenger.gender}</StyledTableCell>
+                        <StyledTableCell align="center">
+                          <Tooltip title="View Details">
+                          <IconButton
+                                color="primary"
+                                onClick={() => handleDetailsClick(passenger._id)}
+                                size="small"
+                              >
+                                <InfoIcon />
+                              </IconButton>
+                          </Tooltip>
+                        </StyledTableCell>
                       </TableRow>
                     ))
                   )}

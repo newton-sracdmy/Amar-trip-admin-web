@@ -3,12 +3,11 @@ import amrTrip from "../../../services/amrTrip";
 
 export const getRidesData = createAsyncThunk(
   'rides/fetchRides',
-  async ({ page, limit, status, search }) => {
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YTVkZDAyZTg0MjQyNGYwYjlkZDc4ZiIsInR5cGUiOiJhZG1pbiIsImlhdCI6MTczOTU5OTU3MCwiZXhwIjoxNzM5NjMxOTcwfQ.mmbh5XCjacVe9DaoW9hWisiL5-9VM9xPAxjpwOK5SQw";
+  async ({ page, limit, status, search }, { getState }) => {
     
     const config = {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${getState().authReducer.token}`
       },
       params: {
         page,
@@ -28,12 +27,12 @@ export const getRidesData = createAsyncThunk(
 
 export const getRideDataById = createAsyncThunk(
   'rides/fetchRideDataById',
-  async (id) => {  
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YTVkZDAyZTg0MjQyNGYwYjlkZDc4ZiIsInR5cGUiOiJhZG1pbiIsImlhdCI6MTczOTU5OTU3MCwiZXhwIjoxNzM5NjMxOTcwfQ.mmbh5XCjacVe9DaoW9hWisiL5-9VM9xPAxjpwOK5SQw";
+  async (id, { getState }) => {  
+   
     const config = {
       headers: {
-        Authorization: `Bearer ${token}`,
-      },
+        Authorization: `Bearer ${getState().authReducer.token}`
+      }
     };
     
     const {

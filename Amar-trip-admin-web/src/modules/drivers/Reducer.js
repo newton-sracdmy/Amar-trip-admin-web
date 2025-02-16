@@ -1,10 +1,13 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { getUsersData } from './action';
+import { getUserDataById, getUsersData } from './action';
 
 const initialState = {
   users: [], 
-  status: 'idle',
-  error: '',
+  userDataById: [],
+  userStatus: 'idle',
+  userDataByIdStatus: 'idle',
+  usersError: '',
+  userDataByIdError: '',
   isLoading: false,
   isError: false,
 };
@@ -16,20 +19,36 @@ export const usersSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(getUsersData.pending, (state) => {
-        state.status = 'pending';
+        state.userStatus = 'pending';
         state.isLoading = true;
         state.isError = false;
       })
       .addCase(getUsersData.fulfilled, (state, action) => {
-        state.status = 'success';
+        state.userStatus = 'success';
         state.isLoading = false;
         state.users = action.payload;
       })
       .addCase(getUsersData.rejected, (state, action) => {
-        state.status = 'error';
+        state.userStatus = 'error';
         state.isLoading = false;
         state.isError = true;
-        state.error = action.error.message;
+        state.usersError = action.error.message;
+      })
+      .addCase(getUserDataById.pending, (state) => {
+        state.userDataByIdStatus = 'pending';
+        state.isLoading = true;
+        state.isError = false;
+      })
+      .addCase(getUserDataById.fulfilled, (state, action) => {
+        state.userDataByIdStatus = 'success';
+        state.isLoading = false;
+        state.userDataById = action.payload;
+      })
+      .addCase(getUserDataById.rejected, (state, action) => {
+        state.userDataByIdStatus = 'error';
+        state.isLoading = false;
+        state.isError = true;
+        state.userDataByIdError = action.error.message;
       });
   }
 });

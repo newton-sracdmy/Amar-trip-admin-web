@@ -128,7 +128,6 @@ const Rides = () => {
 
 
   const handleDetailsClick = (rideId) => {
-    console.log('Details clicked for rides:', rideId);
     navigate(`/rides/${rideId}`);
   };
   

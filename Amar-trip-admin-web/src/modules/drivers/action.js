@@ -3,11 +3,10 @@ import amrTrip from "../../services/amrTrip";
 
 export const getUsersData = createAsyncThunk(
   'rides/fetchUsers',
-  async ({ page, limit, type, isOnline, search }) => {  
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YTVkZDAyZTg0MjQyNGYwYjlkZDc4ZiIsInR5cGUiOiJhZG1pbiIsImlhdCI6MTczOTU5OTU3MCwiZXhwIjoxNzM5NjMxOTcwfQ.mmbh5XCjacVe9DaoW9hWisiL5-9VM9xPAxjpwOK5SQw";
+  async ({ page, limit, type, isOnline, search },{ getState }) => {  
     const config = {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${getState().authReducer.token}`
       },
       params: {
         page,
@@ -22,6 +21,22 @@ export const getUsersData = createAsyncThunk(
       data: { data },
     } = await amrTrip.get(`/users?type=${type}`, config);
 
+    return data;
+  }
+);
+
+export const getUserDataById = createAsyncThunk(
+  'rides/fetchUserDataById',
+  async (id, { getState }) => {  
+    const config = {
+      headers: {
+        Authorization: `Bearer ${getState().authReducer.token}`
+      }
+    };
+    
+    const {
+      data: { data },
+    } = await amrTrip.get(`/users/${id}`, config);
     return data;
   }
 );
