@@ -5,6 +5,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import ListAltIcon from "@mui/icons-material/ListAlt";
+import PaymentIcon from "@mui/icons-material/Payment";
 
 const drawerWidth = 200;
 
@@ -16,6 +17,7 @@ const Sidebar = () => {
     { text: "Passengers", icon: <PeopleIcon />, path: "/passengers" },
     { text: "Drivers", icon: <DirectionsCarIcon />, path: "/drivers" },
     { text: "Ride List", icon: <ListAltIcon />, path: "/rides" },
+    { text: "Payments", icon: <PaymentIcon />, path: "/payments" },
   ];
 
   const isActive = (path) => {

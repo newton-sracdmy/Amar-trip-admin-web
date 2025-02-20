@@ -8,22 +8,19 @@ import Dashboard from "./modules/dashboard/DashBoard";
 import RideDetailsPage from "./modules/rides/components/RideDetails";
 import LoginPage from "./modules/login/Login";
 import DriverDetailsPage from "./modules/drivers/DriverDetails";
+import PaymentListPage from "./modules/payments/Payments";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
-  const [token, setToken] = useState(null);
-
-  useEffect(() => {
-    setToken(localStorage.getItem("token"));
-  }, []);
 
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LoginPage />} />
+        <Route element={<ProtectedRoute />}>
         <Route
           path="/*"
           element={
-            token ? (
               <Layout>
                 <Routes>
                   <Route path="/rides" element={<Rides />} />
@@ -32,13 +29,14 @@ const App = () => {
                   <Route path="/rides/:id" element={<RideDetailsPage />} />
                   <Route path="/drivers" element={<DriverPanel />} />
                   <Route path="/users/:id" element={<DriverDetailsPage />} />
+                  <Route path="/payments" element={<PaymentListPage />} />
+                  
                 </Routes>
               </Layout>
-            ) : (
-              <Navigate to="/" replace />
-            )
           }
         />
+        </Route>
+        <Route path="*" element={<Navigate to ="/" replace />} />
       </Routes>
     </Router>
   );
