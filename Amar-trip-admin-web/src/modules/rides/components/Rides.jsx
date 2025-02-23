@@ -34,7 +34,7 @@ import { useNavigate } from 'react-router-dom';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2',
+      main: '#000000',
     },
     status: {
       completed: '#4caf50',
@@ -42,6 +42,9 @@ const theme = createTheme({
       accepted: '#ff9800',
       cancelled: '#f44336',
     },
+  },
+  typography: {
+    fontFamily: '"Arial", "Helvetica", sans-serif', // Add Arial font
   },
   components: {
     MuiPaper: {

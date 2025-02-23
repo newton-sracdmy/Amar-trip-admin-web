@@ -30,16 +30,21 @@ import { styled } from '@mui/material/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUsersData } from './action';
 import { useNavigate } from 'react-router-dom';
+import LocationFilter from '../locations/LocationFilter';
+import timeAgo  from '../../utils/timerUtils';
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2',
+      main: '#000000',
     },
     status: {
       active: '#4caf50',
       inactive: '#f44336',
     },
+  },
+  typography: {
+    fontFamily: '"Arial", "Helvetica", sans-serif', // Add Arial font
   },
   components: {
     MuiPaper: {
@@ -60,6 +65,7 @@ const theme = createTheme({
     },
   },
 });
+
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -98,13 +104,18 @@ function Drivers() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
+  const [locationFilters, setLocationFilters] = useState({
+    district: '',
+    upazila: '',
+    union: ''
+  });
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
   const driversData = useSelector((state) => state.usersReducer);
   const drivers=driversData?.users?.users;
-
+  
 
   const useDebounce = (value, delay) => {
     const [debouncedValue, setDebouncedValue] = useState(value);
@@ -124,6 +135,17 @@ function Drivers() {
 
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
+  const { 
+      districts,
+      upazilas,
+      unions,
+      status,
+      isLoading
+    } = useSelector(state => state.locationReducer);
+    const districtObj = districts.data.find(d => d._id === locationFilters.district);
+    const upazilaObj = upazilas.data.find(u => u._id === locationFilters.upazila);
+    const unionObj = unions.data.find(u => u._id ===locationFilters.union);
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -133,7 +155,10 @@ function Drivers() {
           type: "driver",
           limit: rowsPerPage,
           isOnline: isOnline === 'all' ? '' : isOnline,
-          search: debouncedSearchQuery
+          search: debouncedSearchQuery,
+          district:districtObj?.name,
+          upazila: upazilaObj?.name,
+          union: unionObj?.name
         }));
       } catch (error) {
         console.error('Error fetching drivers:', error);
@@ -142,7 +167,7 @@ function Drivers() {
       }
     };
     fetchData();
-  }, [dispatch, page, rowsPerPage, isOnline, debouncedSearchQuery]); 
+  }, [dispatch, page, rowsPerPage, isOnline, debouncedSearchQuery, locationFilters]); 
 
   useEffect(() => {
     if (driversData?.users?.pagination) {
@@ -174,6 +199,7 @@ function Drivers() {
     navigate(`/users/${userId}`, { state: { parent: "drivers" } });
   };
 
+
   return (
     <ThemeProvider theme={theme}>
       <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -184,6 +210,14 @@ function Drivers() {
                 Driver Management
               </Typography>
               <Box display="flex" gap={2}>
+
+              <LocationFilter 
+                 onLocationChange={(filters) => {
+                 setLocationFilters(filters);
+                 setPage(1);
+                 }}
+               />
+
                 <FormControl sx={{ minWidth: 120 }} size="small">
                   <InputLabel id="status-filter-label">Status</InputLabel>
                   <Select
@@ -222,12 +256,14 @@ function Drivers() {
                   <TableRow>
                     <StyledTableHeaderCell>Name</StyledTableHeaderCell>
                     <StyledTableHeaderCell>Phone</StyledTableHeaderCell>
-                    <StyledTableHeaderCell>Email</StyledTableHeaderCell>
+                    {/* <StyledTableHeaderCell>Email</StyledTableHeaderCell> */}
                     <StyledTableHeaderCell>Status</StyledTableHeaderCell>
-                    <StyledTableHeaderCell>Rating</StyledTableHeaderCell>
-                    <StyledTableHeaderCell>Emergency Contact</StyledTableHeaderCell>
-                    <StyledTableHeaderCell>Experience</StyledTableHeaderCell>
+                    {/* <StyledTableHeaderCell>Rating</StyledTableHeaderCell> */}
+                    {/* <StyledTableHeaderCell>Emergency Contact</StyledTableHeaderCell> */}
+                    {/* <StyledTableHeaderCell>Experience</StyledTableHeaderCell> */}
                     <StyledTableHeaderCell>Gender</StyledTableHeaderCell>
+                    <StyledTableHeaderCell>Current Location</StyledTableHeaderCell>
+                    <StyledTableHeaderCell> Last Seen</StyledTableHeaderCell>
                     <StyledTableHeaderCell align="center">Details</StyledTableHeaderCell>
                   </TableRow>
                 </TableHead>
@@ -248,20 +284,25 @@ function Drivers() {
                     </TableRow>
                   ) : (
                     drivers.map((driver,key) => (
+                      
                       <TableRow 
                         key={driver.id}
                         sx={{ '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
                       >
                         <StyledTableCell>{driver.name}</StyledTableCell>
                         <StyledTableCell>{driver.phone}</StyledTableCell>
-                        <StyledTableCell>{driver.email}</StyledTableCell>
+                        {/* <StyledTableCell>{driver.email}</StyledTableCell> */}
                         <StyledTableCell>
                           <StatusChip status={driver.status} />
                         </StyledTableCell>
-                        <StyledTableCell>{driver.rating}</StyledTableCell>
-                        <StyledTableCell>{driver.emergency_contact}</StyledTableCell>
-                        <StyledTableCell>{driver.experience}</StyledTableCell>
+                        {/* <StyledTableCell>{driver.rating}</StyledTableCell> */}
+                        {/* <StyledTableCell>{driver.emergency_contact}</StyledTableCell> */}
+                        {/* <StyledTableCell>{driver.experience}</StyledTableCell> */}
                         <StyledTableCell>{driver.gender}</StyledTableCell>
+                        <StyledTableCell>{driver?.carLocation?.district}-{driver?.carLocation?.upazila}-{driver?.carLocation?.union}</StyledTableCell>
+                        
+                        <StyledTableCell>{timeAgo(driver.lastSeen)}</StyledTableCell>
+
                         <StyledTableCell align="center">
                           <Tooltip title="View Details">
                           <IconButton

@@ -33,7 +33,7 @@ const Sidebar = () => {
       sx={{
         width: drawerWidth,
         flexShrink: 0,
-        [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: "border-box" },
+        [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: "border-box", backgroundColor: "#fff" },
       }}
     >
       <Toolbar />
@@ -45,14 +45,14 @@ const Sidebar = () => {
             component={Link}
             to={item.path}
             sx={{
-              backgroundColor: isActive(item.path) ? "#1976d2" : "transparent",
-              color: isActive(item.path) ? "white" : "inherit",
+              backgroundColor: isActive(item.path) ? "#000" : "transparent",
+              color: isActive(item.path) ? "#fff" : "#000",
               "&:hover": {
-                backgroundColor: "#1565c0",
+                backgroundColor: "#ddd",
               },
             }}
           >
-            <ListItemIcon sx={{ color: isActive(item.path) ? "white" : "inherit" }}>
+            <ListItemIcon sx={{ color: isActive(item.path) ? "#fff" : "#000" }}>
               {item.icon}
             </ListItemIcon>
             <ListItemText primary={item.text} />

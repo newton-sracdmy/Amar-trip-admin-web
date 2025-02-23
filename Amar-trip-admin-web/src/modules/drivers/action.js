@@ -3,7 +3,7 @@ import amrTrip from "../../services/amrTrip";
 
 export const getUsersData = createAsyncThunk(
   'rides/fetchUsers',
-  async ({ page, limit, type, isOnline, search },{ getState }) => {  
+  async ({ page, limit, type, isOnline, search, district, upazila,union },{ getState }) => {  
     const config = {
       headers: {
         Authorization: `Bearer ${getState().authReducer.token}`
@@ -13,13 +13,16 @@ export const getUsersData = createAsyncThunk(
         type,
         limit,
         ...(isOnline && isOnline !== 'all' && { isOnline }),
-        ...(search && { search })
+        ...(search && { search }),
+        district,
+        upazila,
+        union
       }
     };
     
     const {
       data: { data },
-    } = await amrTrip.get(`/users?type=${type}`, config);
+    } = await amrTrip.get(`/users`, config);
 
     return data;
   }
@@ -40,3 +43,4 @@ export const getUserDataById = createAsyncThunk(
     return data;
   }
 );
+

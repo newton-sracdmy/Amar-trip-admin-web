@@ -34,12 +34,15 @@ import { useNavigate } from 'react-router-dom';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2',
+      main: '#000000',
     },
     status: {
       active: '#4caf50',
       inactive: '#f44336',
     },
+  },
+  typography: {
+    fontFamily: '"Arial", "Helvetica", sans-serif',
   },
   components: {
     MuiPaper: {
@@ -223,11 +226,11 @@ function Passengers() {
                   <TableRow>
                     <StyledTableHeaderCell>Name</StyledTableHeaderCell>
                     <StyledTableHeaderCell>Phone</StyledTableHeaderCell>
-                    <StyledTableHeaderCell>Email</StyledTableHeaderCell>
+                    {/* <StyledTableHeaderCell>Email</StyledTableHeaderCell> */}
                     <StyledTableHeaderCell>Status</StyledTableHeaderCell>
-                    <StyledTableHeaderCell>Rating</StyledTableHeaderCell>
+                    {/* <StyledTableHeaderCell>Rating</StyledTableHeaderCell> */}
                     <StyledTableHeaderCell>Emergency Contact</StyledTableHeaderCell>
-                    <StyledTableHeaderCell>Experience</StyledTableHeaderCell>
+                    {/* <StyledTableHeaderCell>Experience</StyledTableHeaderCell> */}
                     <StyledTableHeaderCell>Gender</StyledTableHeaderCell>
                     <StyledTableHeaderCell align="center">Details</StyledTableHeaderCell>
                   </TableRow>
@@ -255,13 +258,13 @@ function Passengers() {
                       >
                         <StyledTableCell>{passenger.name}</StyledTableCell>
                         <StyledTableCell>{passenger.phone}</StyledTableCell>
-                        <StyledTableCell>{passenger.email}</StyledTableCell>
+                        {/* <StyledTableCell>{passenger.email}</StyledTableCell> */}
                         <StyledTableCell>
                           <StatusChip status={passenger.status} />
                         </StyledTableCell>
-                        <StyledTableCell>{passenger.rating}</StyledTableCell>
+                        {/* <StyledTableCell>{passenger.rating}</StyledTableCell> */}
                         <StyledTableCell>{passenger.emergency_contact}</StyledTableCell>
-                        <StyledTableCell>{passenger.experience}</StyledTableCell>
+                        {/* <StyledTableCell>{passenger.experience}</StyledTableCell> */}
                         <StyledTableCell>{passenger.gender}</StyledTableCell>
                         <StyledTableCell align="center">
                           <Tooltip title="View Details">

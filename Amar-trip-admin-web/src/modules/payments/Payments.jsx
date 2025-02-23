@@ -30,11 +30,12 @@ import { Download } from "@mui/icons-material";
 import { styled } from '@mui/material/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { getPaymentData, getPaymentForDownload } from './action';
+import { useNavigate } from 'react-router-dom';
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2',
+      main: '#000000',
     },
   },
 });
@@ -53,7 +54,7 @@ const StyledTableCell = styled(TableCell)({
 const StyledTableHeaderCell = styled(TableCell)({
   textAlign: 'center',
   padding: '16px',
-  backgroundColor: '#1976d2',
+  backgroundColor: '#000000',
   color: '#fff',
   fontWeight: 'bold',
 });
@@ -65,6 +66,8 @@ const StatusChip = ({ status }) => {
       pending: 'warning',
       failed: 'error',
       refunded: 'primary',
+      due: 'warning',
+      cancelled: 'error',
     };
     return colors[status?.toLowerCase()] || 'default';
   };
@@ -82,12 +85,14 @@ const PaymentListPage = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const payments = useSelector((state) => state.paymentsReducer) || {};
   const paymentData = payments?.paymentsData?.payments || [];
 
-  
   const useDebounce = (value, delay) => {
     const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -143,11 +148,11 @@ const PaymentListPage = () => {
   const handleRowsPerPageChange = (event) => {
     const newRowsPerPage = parseInt(event.target.value, 10);
     setRowsPerPage(newRowsPerPage);
-    setPage(1); 
+    setPage(1);
   };
 
   const formatDate = (dateString) => new Date(dateString).toLocaleString();
-
+ 
 
 
   const handleDownload = () => {
@@ -159,7 +164,11 @@ const PaymentListPage = () => {
     dispatch(getPaymentForDownload({ startDate, endDate }));
   };
 
-
+  const handleDetailsClick = (paymentId) => {
+    console.log("===================paymentId==========",paymentId)
+    navigate(`/payments/${paymentId}`);
+  };
+  
   return (
     <ThemeProvider theme={theme}>
       <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -171,70 +180,70 @@ const PaymentListPage = () => {
                   Payment Management
                 </Typography>
             
-              <Box display="flex" gap={2} flexWrap="wrap">
-              <Button
-                  variant="contained" 
-                  color="primary" 
-                  startIcon={<Download />} 
-                  onClick={handleDownload}
+                <Box display="flex" gap={2} flexWrap="wrap">
+                  <Button
+                    variant="contained" 
+                    color="primary" 
+                    startIcon={<Download />} 
+                    onClick={handleDownload}
                   >
-                  Download
-                </Button>
-                <TextField
-                  label="Start Date"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => {
-                    setStartDate(e.target.value);
-                    setPage(1);
-                  }}
-                  InputLabelProps={{ shrink: true }}
-                  size="small"
-                />
-                <TextField
-                  label="End Date"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => {
-                    setEndDate(e.target.value);
-                    setPage(1);
-                  }}
-                  InputLabelProps={{ shrink: true }}
-                  size="small"
-                />
-                <Select
-                  size="small"
-                  value={status}
-                  onChange={(e) => {
-                    setStatus(e.target.value);
-                    setPage(1);
-                  }}
-                  displayEmpty
-                  sx={{ minWidth: 120 }}
-                >
-                  <MenuItem value="all">All Status</MenuItem>
-                  <MenuItem value="paid">PAID</MenuItem>
-                  <MenuItem value="pending">PENDING</MenuItem>
-                  <MenuItem value="failed">FAILED</MenuItem>
-                  <MenuItem value="refunded">REFUNDED</MenuItem>
-                </Select>
-                <TextField
-                  size="small"
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setPage(1);
-                  }}
-                  sx={{ width: 200 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                    Download
+                  </Button>
+                  <TextField
+                    label="Start Date"
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      setPage(1);
+                    }}
+                    InputLabelProps={{ shrink: true }}
+                    size="small"
+                  />
+                  <TextField
+                    label="End Date"
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => {
+                      setEndDate(e.target.value);
+                      setPage(1);
+                    }}
+                    InputLabelProps={{ shrink: true }}
+                    size="small"
+                  />
+                  <Select
+                    size="small"
+                    value={status}
+                    onChange={(e) => {
+                      setStatus(e.target.value);
+                      setPage(1);
+                    }}
+                    displayEmpty
+                    sx={{ minWidth: 120 }}
+                  >
+                    <MenuItem value="all">All Status</MenuItem>
+                    <MenuItem value="paid">PAID</MenuItem>
+                    <MenuItem value="due">DUE</MenuItem>
+                    <MenuItem value="cancelled">CANCELLED</MenuItem>
+                    <MenuItem value="failed">FAILED</MenuItem>
+                  </Select>
+                  <TextField
+                    size="small"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setPage(1);
+                    }}
+                    sx={{ width: 200 }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
                 </Box>
               </Box>
             </Grid>
@@ -244,9 +253,9 @@ const PaymentListPage = () => {
                 <Table>
                   <TableHead>
                     <TableRow>
+                      <StyledTableHeaderCell>Invoice Number</StyledTableHeaderCell>
                       <StyledTableHeaderCell>Ride Status</StyledTableHeaderCell>
                       <StyledTableHeaderCell>Date</StyledTableHeaderCell>
-                      <StyledTableHeaderCell>Ride Type</StyledTableHeaderCell>
                       <StyledTableHeaderCell>Booking ID</StyledTableHeaderCell>
                       <StyledTableHeaderCell>Customer Name</StyledTableHeaderCell>
                       <StyledTableHeaderCell>Amount</StyledTableHeaderCell>
@@ -275,9 +284,9 @@ const PaymentListPage = () => {
                           key={payment.id}
                           sx={{ '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
                         >
+                          <StyledTableCell>{payment?.invoiceNumber}</StyledTableCell>
                           <StyledTableCell>{payment?.ride?.status}</StyledTableCell>
                           <StyledTableCell>{formatDate(payment?.createdAt)}</StyledTableCell>
-                          <StyledTableCell>{payment?.ride?.rideType}</StyledTableCell>
                           <StyledTableCell>{payment?.ride?.bookingNumber}</StyledTableCell>
                           <StyledTableCell>{payment?.user?.name}</StyledTableCell>
                           <StyledTableCell>৳{payment?.amount}</StyledTableCell>
@@ -286,7 +295,11 @@ const PaymentListPage = () => {
                           </StyledTableCell>
                           <StyledTableCell>
                             <Tooltip title="View Details">
-                              <IconButton color="primary" size="small">
+                              <IconButton 
+                              color="primary"
+                              onClick={() => handleDetailsClick(payment._id)}
+                               size="small"
+                               >
                                 <InfoIcon />
                               </IconButton>
                             </Tooltip>
@@ -306,44 +319,44 @@ const PaymentListPage = () => {
                   justifyContent="space-between" 
                   alignItems="center"
                   sx={{ mt: 2 }}
-                >
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <Box display="flex" alignItems="center" gap={1}>
+                  >
+                    <Box display="flex" alignItems="center" gap={2}>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Typography variant="body2" color="text.secondary">
+                          Rows per page:
+                        </Typography>
+                        <Select
+                          size="small"
+                          value={rowsPerPage}
+                          onChange={handleRowsPerPageChange}
+                        >
+                          <MenuItem value={5}>5</MenuItem>
+                          <MenuItem value={10}>10</MenuItem>
+                          <MenuItem value={25}>25</MenuItem>
+                          <MenuItem value={50}>50</MenuItem>
+                        </Select>
+                      </Box>
                       <Typography variant="body2" color="text.secondary">
-                        Rows per page:
+                        Showing {paymentData.length} of {totalItems} payments
                       </Typography>
-                      <Select
-                        size="small"
-                        value={rowsPerPage}
-                        onChange={handleRowsPerPageChange}
-                      >
-                        <MenuItem value={5}>5</MenuItem>
-                        <MenuItem value={10}>10</MenuItem>
-                        <MenuItem value={25}>25</MenuItem>
-                        <MenuItem value={50}>50</MenuItem>
-                      </Select>
                     </Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Showing {paymentData.length} of {totalItems} payments
-                    </Typography>
+                    <Pagination
+                      count={totalPages}
+                      page={page}
+                      onChange={handlePageChange}
+                      color="primary"
+                      showFirstButton
+                      showLastButton
+                      size="medium"
+                    />
                   </Box>
-                  <Pagination
-                    count={totalPages}
-                    page={page}
-                    onChange={handlePageChange}
-                    color="primary"
-                    showFirstButton
-                    showLastButton
-                    size="medium"
-                  />
-                </Box>
-              </Grid>
-            )}
-          </Grid>
-        </StyledPaper>
-      </Container>
-    </ThemeProvider>
-  );
-};
-
-export default PaymentListPage;
+                </Grid>
+              )}
+            </Grid>
+          </StyledPaper>
+        </Container>
+      </ThemeProvider>
+    );
+  };
+  
+  export default PaymentListPage;

@@ -69,3 +69,19 @@ export const getPaymentData = createAsyncThunk(
       }
     }
   );
+
+
+  export const getPaymentDataById = createAsyncThunk(
+    'payments/fetchPaymentDataById',
+    async (id, { getState }) => {  
+     
+      const config = {
+        headers: {
+          Authorization: `Bearer ${getState().authReducer.token}`
+        }
+      };
+      
+      const { data } = await amrTrip.get(`/payments/${id}`, config);
+      return data;
+    }
+  );

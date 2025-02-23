@@ -1,11 +1,14 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { getPaymentData } from './action';
+import { getPaymentData, getPaymentDataById } from './action';
 
 
 const initialState = {
   paymentsData: [], 
-  status: 'idle',
-  error: '',
+  paymentById: [],
+  paymentsStatus: 'idle', 
+  paymentByIdStatus: 'idle',
+  paymentsError: '',
+  paymentByIdError: '',
   isLoading: false,
   isError: false,
 };
@@ -17,20 +20,36 @@ export const paymentsSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(getPaymentData.pending, (state) => {
-        state.status = 'pending';
+        state.paymentsStatus = 'pending';
         state.isLoading = true;
         state.isError = false;
       })
       .addCase(getPaymentData.fulfilled, (state, action) => {
-        state.status = 'success';
+        state.paymentsStatus = 'success';
         state.isLoading = false;
         state.paymentsData = action.payload;
       })
       .addCase(getPaymentData.rejected, (state, action) => {
-        state.status = 'error';
+        state.paymentsStatus = 'error';
         state.isLoading = false;
         state.isError = true;
-        state.error = action.error.message;
+        state.paymentsError = action.error.message;
+      })
+     .addCase(getPaymentDataById.pending, (state) => {
+        state.paymentByIdStatus = 'pending';
+        state.isLoading = true;
+        state.isError = false;
+      })
+      .addCase(getPaymentDataById.fulfilled, (state, action) => {
+        state.paymentByIdStatus = 'success';
+        state.isLoading = false;
+        state.paymentById = action.payload;
+      })
+      .addCase(getPaymentDataById.rejected, (state, action) => {
+        state.paymentByIdStatus = 'error';
+        state.isLoading = false;
+        state.isError = true;
+        state.paymentByIdError = action.error.message;
       });
   }
 });

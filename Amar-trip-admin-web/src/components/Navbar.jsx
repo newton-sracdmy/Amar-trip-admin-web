@@ -18,25 +18,27 @@ const Navbar = ({ toggleDrawer }) => {
     navigate("/");
   };
   return (
-    <AppBar position="fixed" sx={{ zIndex: 1301 }}> 
-      <Toolbar>
-        <IconButton color="inherit" edge="start" onClick={toggleDrawer} sx={{ display: { sm: "none" } }}>
-          <MenuIcon />
-        </IconButton>
+    <AppBar position="fixed" sx={{ zIndex: 1301, bgcolor: "black", color: "white" }}> 
+  <Toolbar>
+    <IconButton color="inherit" edge="start" onClick={toggleDrawer} sx={{ display: { sm: "none" } }}>
+      <MenuIcon />
+    </IconButton>
 
-        <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
-          <Avatar sx={{ bgcolor: "white", color: "black", mr: 1 }}>
-            <DirectionsCarIcon />
-          </Avatar>
-          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-            Amar Trip
-          </Typography>
-        </Box>
+    <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
+      <Avatar sx={{ bgcolor: "white", color: "black", mr: 1 }}>
+        <DirectionsCarIcon />
+      </Avatar>
+      <Typography variant="h6" sx={{ fontWeight: "bold", color: "white" }}>
+        Amar Trip
+      </Typography>
+    </Box>
 
-        
-          <Button color="inherit" onClick={handleLogout} sx={{ mr: 5 }}  startIcon={<LogoutIcon />}>Logout</Button>
-      </Toolbar>
-    </AppBar>
+    <Button color="inherit" onClick={handleLogout} sx={{ mr: 5, color: "white" }} startIcon={<LogoutIcon />}>
+      Logout
+    </Button>
+  </Toolbar>
+</AppBar>
+
   );
 };
 

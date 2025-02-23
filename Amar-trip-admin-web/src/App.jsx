@@ -10,6 +10,7 @@ import LoginPage from "./modules/login/Login";
 import DriverDetailsPage from "./modules/drivers/DriverDetails";
 import PaymentListPage from "./modules/payments/Payments";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PaymentDetails from "./modules/payments/paymentsDetails";
 
 const App = () => {
 
@@ -29,6 +30,7 @@ const App = () => {
                   <Route path="/rides/:id" element={<RideDetailsPage />} />
                   <Route path="/drivers" element={<DriverPanel />} />
                   <Route path="/users/:id" element={<DriverDetailsPage />} />
+                  <Route path="/payments/:id" element={<PaymentDetails />} />
                   <Route path="/payments" element={<PaymentListPage />} />
                   
                 </Routes>

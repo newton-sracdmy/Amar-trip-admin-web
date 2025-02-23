@@ -4,13 +4,17 @@ import usersReducer from "./modules/drivers/Reducer";
 import ridesSummaryReducer from "./modules/dashboard/reducer";
 import authReducer from "./modules/login/reducer"
 import paymentsReducer from "./modules/payments/reducer";
+import locationReducer from "./modules/locations/reducer";
+
 
 const rootReducer = combineReducers({
     ridesReducer,
     usersReducer,
     ridesSummaryReducer,
     authReducer,
-    paymentsReducer
+    paymentsReducer,
+    locationReducer
+    
 });
 
 export default rootReducer;
